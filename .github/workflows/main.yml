@@ -20,26 +20,27 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
       - name: Extract Android project
         run: |
           unzip -o AlphabetGameApp-fixed-2.zip -d android-project
 
-      - name: Find Gradle project
+      - name: Find Android project
         run: |
-          find android-project -name gradlew -type f
+          find android-project -name settings.gradle -o -name settings.gradle.kts
 
-      - name: Make gradlew executable
+      - name: Build APK
         run: |
-          chmod +x $(find android-project -name gradlew -type f | head -1)
-
-      - name: Build Debug APK
-        run: |
-          PROJECT=$(dirname "$(find android-project -name gradlew -type f | head -1)")
-          cd "$PROJECT"
-          ./gradlew assembleDebug
+          PROJECT=$(dirname "$(find android-project -name settings.gradle -o -name settings.gradle.kts | head -1)")
+          echo "Android project: $PROJECT"
+          gradle -p "$PROJECT" assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: AlphabetGame-debug-apk
-          path: '**/build/outputs/apk/debug/*.apk'
+          path: 'android-project/**/build/outputs/apk/debug/*.apk'
