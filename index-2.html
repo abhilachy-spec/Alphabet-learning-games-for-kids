@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Adventure</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;min-height:100vh;background:linear-gradient(135deg,#fff3a6,#b9efff 55%,#d8c8ff);color:#24324a}
+.app{max-width:540px;margin:auto;padding:14px}
+.logo{display:block;width:135px;height:135px;margin:8px auto 2px;filter:drop-shadow(0 6px 8px #0002)}
+h1{text-align:center;margin:0;color:#ff633d;font-size:32px}
+.tag{text-align:center;font-weight:bold;color:#59677e;margin:4px 0 14px}
+.card{background:#ffffffee;border-radius:25px;padding:20px;box-shadow:0 10px 28px #0002;margin:12px 0}
+.subjects{display:grid;grid-template-columns:1fr;gap:10px}
+button{width:100%;border:0;border-radius:17px;padding:15px;margin:5px 0;font-size:18px;font-weight:bold;color:white;cursor:pointer;box-shadow:0 4px 0 #0002}
+.eng{background:#4f7cff}.math{background:#2bb673}.hin{background:#ff8a3d}.verify{background:#8b62e8}.sound{background:#f3b400}.back{background:#68758b}
+input{width:100%;padding:14px;border:2px solid #d8deea;border-radius:14px;font-size:17px;margin:6px 0}
+.hidden{display:none}.q{font-size:24px;font-weight:bold;margin:18px 0;text-align:center}
+.option{background:#eef3ff;color:#24324a;box-shadow:none}.option:active{transform:scale(.98)}
+.progress{text-align:center;color:#6b7890;font-weight:bold}.score{text-align:center;font-size:38px;color:#2ba865;font-weight:bold}
+.small{text-align:center;color:#68758b;font-size:14px;line-height:1.5}
+.badge{display:inline-block;background:#fff0a8;border-radius:20px;padding:7px 12px;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="app">
+<img src="logo.svg" class="logo" alt="Alpha Adventure">
+<h1>Alpha Adventure</h1>
+<div class="tag">🎮 Learn • Play • Win 🏆</div>
+
+<section id="home" class="card">
+<h2>🌟 बच्चों का Learning Game</h2>
+<p>English, Math और Hindi के 10-10 सवाल खेलकर सीखो।</p>
+<div class="subjects">
+<button class="verify" onclick="showVerify()">📱 Mobile Number Verify</button>
+<button class="eng" onclick="startExam('English')">🅰️ English Exam — 10 Questions</button>
+<button class="math" onclick="startExam('Math')">🔢 Math Exam — 10 Questions</button>
+<button class="hin" onclick="startExam('Hindi')">अ आ Hindi Exam — 10 Questions</button>
+<button class="sound" onclick="toggleMusic()" id="musicBtn">🎵 Background Music: ON</button>
+</div>
+<p class="small">पास होने के लिए कम से कम 7/10 सही करें।</p>
+</section>
+
+<section id="verify" class="card hidden">
+<h2>📱 Mobile Number Verification</h2>
+<input id="phone" type="tel" maxlength="10" placeholder="10 digit mobile number">
+<button class="verify" onclick="sendOTP()">Send OTP</button>
+<div id="otpBox" class="hidden">
+<input id="otp" type="tel" maxlength="6" placeholder="6 digit OTP">
+<button class="eng" onclick="verifyOTP()">Verify OTP</button>
+</div>
+<p class="small">अभी यह demo OTP है। Demo OTP: <b>123456</b>। असली SMS OTP के लिए Firebase/secure backend जोड़ना होगा।</p>
+<button class="back" onclick="goHome()">← Home</button>
+</section>
+
+<section id="exam" class="card hidden">
+<div id="examTitle"></div>
+<div id="question" class="q"></div>
+<div id="options"></div>
+<div id="progress" class="progress"></div>
+</section>
+
+<section id="result" class="card hidden">
+<h2 style="text-align:center">🏆 Exam Result</h2>
+<div id="score" class="score"></div>
+<p id="resultText" style="text-align:center;font-size:19px"></p>
+<p id="levelText" style="text-align:center"></p>
+<button class="eng" onclick="goHome()">🏠 Home</button>
+</section>
+</div>
+
+<script>
+const exams={
+English:[
+["What comes after A?",["B","C","D"],0],
+["What comes before D?",["B","C","E"],1],
+["Which is a vowel?",["B","E","T"],1],
+["Which is a capital letter?",["a","g","G"],2],
+["How many letters are A, B, C?",["2","3","4"],1],
+["Which letter comes after M?",["L","N","O"],1],
+["Which is a small letter?",["A","B","c"],2],
+["What comes before Z?",["X","Y","W"],1],
+["Which word starts with C?",["Cat","Bat","Dog"],0],
+["Which letter is between H and J?",["G","I","K"],1]
+],
+Math:[
+["2 + 3 = ?",["4","5","6"],1],
+["5 - 2 = ?",["2","3","4"],1],
+["3 + 4 = ?",["6","7","8"],1],
+["10 - 5 = ?",["4","5","6"],1],
+["1 + 6 = ?",["6","7","8"],1],
+["8 - 3 = ?",["4","5","6"],1],
+["4 + 4 = ?",["7","8","9"],1],
+["9 - 4 = ?",["4","5","6"],1],
+["2 + 7 = ?",["8","9","10"],1],
+["Which number is bigger?",["3","8","5"],1]
+],
+Hindi:[
+["'अ' क्या है?",["स्वर","व्यंजन","अंक"],0],
+["'क' क्या है?",["स्वर","व्यंजन","अंक"],1],
+["'आ' के बाद कौन सा अक्षर आता है?",["इ","क","ग"],0],
+["'म' क्या है?",["स्वर","व्यंजन","अंक"],1],
+["'अ' से कौन सा शब्द शुरू होता है?",["अनार","कमल","घर"],0],
+["'ई' क्या है?",["स्वर","व्यंजन","अंक"],0],
+["'ब' क्या है?",["स्वर","व्यंजन","अंक"],1],
+["'उ' क्या है?",["स्वर","व्यंजन","अंक"],0],
+["'ग' क्या है?",["स्वर","व्यंजन","अंक"],1],
+["'आम' किस अक्षर से शुरू होता है?",["आ","क","म"],0]
+]};
+
+let current=[],idx=0,correct=0,subject="";
+let audioCtx=null, musicTimer=null, musicOn=true;
+
+function hideAll(){["home","verify","exam","result"].forEach(id=>document.getElementById(id).classList.add("hidden"))}
+function goHome(){hideAll();document.getElementById("home").classList.remove("hidden")}
+function showVerify(){hideAll();document.getElementById("verify").classList.remove("hidden")}
+function sendOTP(){
+ if(!/^\d{10}$/.test(phone.value)){alert("कृपया 10 digit mobile number डालें।");return}
+ document.getElementById("otpBox").classList.remove("hidden");
+ alert("Demo OTP: 123456");
+}
+function verifyOTP(){
+ if(otp.value==="123456"){localStorage.setItem("verified","yes");alert("✅ Number verified!");goHome()}
+ else alert("OTP गलत है। Demo OTP 123456 है।")
+}
+function startExam(name){
+ if(localStorage.getItem("verified")!=="yes"){alert("पहले Mobile Number Verify करें।");showVerify();return}
+ startMusic();
+ hideAll();subject=name;current=exams[name];idx=0;correct=0;
+ document.getElementById("exam").classList.remove("hidden");
+ document.getElementById("examTitle").innerHTML='<h2 style="text-align:center">📚 '+name+' Exam</h2>';
+ showQ();
+}
+function showQ(){
+ const q=current[idx];
+ question.textContent=q[0];
+ options.innerHTML="";
+ q[1].forEach((text,i)=>{
+   const b=document.createElement("button");b.className="option";b.textContent=text;
+   b.onclick=()=>answer(i);options.appendChild(b);
+ });
+ progress.textContent="Question "+(idx+1)+" / "+current.length;
+}
+function answer(i){
+ if(i===current[idx][2]){correct++; beep(880,.09)}
+ else beep(220,.12);
+ idx++;
+ if(idx<current.length) setTimeout(showQ,120); else setTimeout(finish,180);
+}
+function finish(){
+ hideAll();document.getElementById("result").classList.remove("hidden");
+ score.textContent=correct+" / "+current.length;
+ const pass=correct>=7;
+ resultText.textContent=pass?"🎉 बहुत बढ़िया! Exam PASS":"😊 कोशिश अच्छी थी! फिर से खेलो और 7/10 पाने की कोशिश करो।";
+ levelText.innerHTML=pass?'<span class="badge">🔓 अगला Level UNLOCKED</span>':'<span class="badge">🔒 अगला Level अभी LOCKED</span>';
+ if(pass){localStorage.setItem(subject+"_passed","yes");beep(1046,.15);setTimeout(()=>beep(1318,.18),180)}
+}
+function getCtx(){
+ if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+ if(audioCtx.state==="suspended")audioCtx.resume();
+ return audioCtx;
+}
+function beep(freq,dur){
+ if(!musicOn)return;
+ const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+ o.type="sine";o.frequency.value=freq;g.gain.setValueAtTime(.0001,c.currentTime);
+ g.gain.exponentialRampToValueAtTime(.045,c.currentTime+.01);
+ g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+dur);
+ o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+dur+.02);
+}
+function startMusic(){
+ if(!musicOn||musicTimer)return;
+ getCtx();let notes=[523,659,784,659,587,698,880,698],n=0;
+ musicTimer=setInterval(()=>{beep(notes[n%notes.length],.22);n++},650);
+}
+function toggleMusic(){
+ musicOn=!musicOn;document.getElementById("musicBtn").textContent=musicOn?"🎵 Background Music: ON":"🔇 Background Music: OFF";
+ if(musicOn)startMusic(); else {clearInterval(musicTimer);musicTimer=null}
+}
+</script>
+</body>
+</html>
