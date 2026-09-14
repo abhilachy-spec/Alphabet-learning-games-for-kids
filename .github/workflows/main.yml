@@ -29,6 +29,11 @@ jobs:
         run: |
           unzip -o AlphabetGameApp-fixed-2.zip -d android-project
 
+      - name: Enable AndroidX
+        run: |
+          echo "android.useAndroidX=true" >> android-project/gradle.properties
+          echo "android.enableJetifier=true" >> android-project/gradle.properties
+
       - name: Find Android project
         run: |
           find android-project -name settings.gradle -o -name settings.gradle.kts
