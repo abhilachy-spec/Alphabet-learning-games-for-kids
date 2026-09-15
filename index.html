@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kids Quiz Game</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    text-align:center;
+    background:linear-gradient(135deg,#74ebd5,#ACB6E5);
+}
+.container{
+    max-width:600px;
+    margin:auto;
+    padding:20px;
+}
+.card{
+    background:white;
+    border-radius:25px;
+    padding:25px;
+    margin-top:25px;
+    box-shadow:0 5px 20px rgba(0,0,0,.2);
+}
+input{
+    width:85%;
+    padding:14px;
+    margin:8px;
+    border:1px solid #ccc;
+    border-radius:12px;
+    font-size:16px;
+}
+button{
+    padding:14px 22px;
+    margin:8px;
+    border:none;
+    border-radius:15px;
+    background:#6c5ce7;
+    color:white;
+    font-size:17px;
+    cursor:pointer;
+}
+button:disabled{
+    background:#aaa;
+}
+.option{
+    display:block;
+    width:90%;
+    margin:12px auto;
+}
+.hidden{
+    display:none;
+}
+.coins{
+    font-size:21px;
+    font-weight:bold;
+}
+.trophy{
+    font-size:100px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div class="card" id="login">
+
+<h1>🎮 Kids Quiz Game</h1>
+
+<p>🌟 Hindi • English • Maths</p>
+
+<input id="name" placeholder="अपना नाम लिखें">
+
+<input id="email" type="email" placeholder="अपना Email लिखें">
+
+<input id="password" type="password" placeholder="Password">
+
+<br>
+
+<button onclick="startGame()">
+🚀 Start Game
+</button>
+
+<p>🪙 Free Game Coins</p>
+<p>🚫 No Deposit • No Withdrawal</p>
+
+</div>
+
+
+<!-- HOME -->
+<div class="card hidden" id="home">
+
+<h1>🌟 Welcome <span id="player"></span></h1>
+
+<p class="coins">
+🪙 Coins: <span id="coinCount">100</span>
+</p>
+
+<p>
+🎮 Plays: <span id="playCount">100</span>
+</p>
+
+<h2>📚 Tasks</h2>
+
+<button onclick="startTask(1)">
+Task 1
+</button>
+
+<button id="task2Button"
+onclick="startTask(2)"
+disabled>
+🔒 Task 2
+</button>
+
+<button id="task3Button"
+onclick="startTask(3)"
+disabled>
+🔒 Task 3
+</button>
+
+</div>
+
+
+<!-- QUIZ -->
+<div class="card hidden" id="quiz">
+
+<h2 id="taskTitle"></h2>
+
+<h2 id="question"></h2>
+
+<div id="options"></div>
+
+<p>
+🪙 Coins:
+<span id="quizCoins">100</span>
+</p>
+
+</div>
+
+
+<!-- WINNER -->
+<div class="card hidden" id="winner">
+
+<h1>🎉 Congratulations! 🎉</h1>
+
+<p>आपने सभी 3 Tasks पूरे कर लिए।</p>
+
+<div class="trophy">🏆</div>
+
+<h2>🏆 WINNER</h2>
+
+<p>बहुत बढ़िया!</p>
+
+</div>
+
+</div>
+
+
+<script>
+
+let coins = 100;
+let plays = 100;
+let completedTask = 0;
+
+const questions = {
+
+1:[
+["Which letter comes after A?",
+["B","C","D"],"B"],
+
+["Which letter is this? B",
+["A","B","C"],"B"],
+
+["Which letter comes before D?",
+["A","B","C"],"C"]
+],
+
+2:[
+["2 + 3 = ?",
+["4","5","6"],"5"],
+
+["5 - 2 = ?",
+["2","3","4"],"3"],
+
+["1 + 4 = ?",
+["4","5","6"],"5"]
+],
+
+3:[
+["Which is a fruit?",
+["Apple","Car","Book"],"Apple"],
+
+["Which is a color?",
+["Blue","Dog","Table"],"Blue"],
+
+["Which animal says Moo?",
+["Cat","Cow","Bird"],"Cow"]
+]
+
+};
+
+
+function startGame(){
+
+let name =
+document.getElementById("name").value.trim();
+
+let email =
+document.getElementById("email").value.trim();
+
+let password =
+document.getElementById("password").value;
+
+if(name==="" || email==="" || password.length<4){
+
+alert("नाम, Email और कम से कम 4 अक्षर का Password डालें।");
+
+return;
+
+}
+
+document.getElementById("player").innerText=name;
+
+document.getElementById("login")
+.classList.add("hidden");
+
+document.getElementById("home")
+.classList.remove("hidden");
+
+}
+
+
+function startTask(taskNumber){
+
+if(taskNumber > completedTask + 1){
+
+alert("पहले पिछला Task पूरा करें।");
+
+return;
+
+}
+
+let list=questions[taskNumber];
+
+let current=0;
+
+document.getElementById("home")
+.classList.add("hidden");
+
+document.getElementById("quiz")
+.classList.remove("hidden");
+
+
+function showQuestion(){
+
+let item=list[current];
+
+document.getElementById("taskTitle").innerText=
+"Task "+taskNumber+
+" | Question "+(current+1)+"/3";
+
+document.getElementById("question").innerText=
+item[0];
+
+let options=
+document.getElementById("options");
+
+options.innerHTML="";
+
+
+item[1].forEach(function(answer){
+
+let button=
+document.createElement("button");
+
+button.innerText=answer;
+
+button.className="option";
+
+button.onclick=function(){
+
+checkAnswer(answer,item[2]);
+
+};
+
+options.appendChild(button);
+
+});
+
+
+document.getElementById("quizCoins")
+.innerText=coins;
+
+}
+
+
+function checkAnswer(answer,correct){
+
+if(answer===correct){
+
+coins += 10;
+
+plays--;
+
+current++;
+
+document.getElementById("quizCoins")
+.innerText=coins;
+
+document.getElementById("playCount")
+.innerText=plays;
+
+alert("✅ सही जवाब! +10 Coins");
+
+if(current<list.length){
+
+showQuestion();
+
+}else{
+
+finishTask();
+
+}
+
+}else{
+
+alert("❌ गलत जवाब। फिर कोशिश करें।");
+
+}
+
+}
+
+
+function finishTask(){
+
+completedTask=taskNumber;
+
+document.getElementById("quiz")
+.classList.add("hidden");
+
+if(taskNumber===3){
+
+document.getElementById("winner")
+.classList.remove("hidden");
+
+return;
+
+}
+
+
+document.getElementById("home")
+.classList.remove("hidden");
+
+document.getElementById("coinCount")
+.innerText=coins;
+
+
+if(taskNumber===1){
+
+document.getElementById("task2Button")
+.disabled=false;
+
+alert("🎉 Task 1 Complete! Task 2 खुल गया।");
+
+}
+
+
+if(taskNumber===2){
+
+document.getElementById("task3Button")
+.disabled=false;
+
+alert("🎉 Task 2 Complete! Task 3 खुल गया।");
+
+}
+
+}
+
+showQuestion();
+
+}
+
+</script>
+
+</body>
+</html>
